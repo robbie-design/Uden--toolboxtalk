@@ -1,3 +1,4 @@
+import { supabase } from "./supabase";
 import React, { useMemo, useState } from "react";
 
 export default function App() {
@@ -58,11 +59,29 @@ export default function App() {
     setMessage("");
   }
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (!isValid) return;
-    setMessage("Toolbox talk captured successfully. Next step is connecting cloud save and email.");
+async function handleSubmit(e) {
+  e.preventDefault();
+  if (!isValid) return;
+
+  const { error } = await supabase.from("toolbox_talks").insert([
+    {
+      site_name: siteName,
+      date,
+      supervisor,
+      attendees: attendees.join(", "),
+      discussion: discussionItems.join(" | "),
+      actions: actionsRequired,
+    },
+  ]);
+
+  if (error) {
+    console.error(error);
+    setMessage("Error saving data ❌");
+  } else {
+    setMessage("Saved to cloud successfully ✅");
+    clearForm();
   }
+}
 
   const pageStyle = {
     minHeight: "100vh",
