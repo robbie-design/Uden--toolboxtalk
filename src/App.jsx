@@ -111,20 +111,25 @@ async function handleSubmit(e) {
       console.error(error);
       setMessage("Error saving data ❌");
     } else {
-      await sendEmailNotification({
-  to: "robbie@udenbuilders.co.nz",
-  site_name: siteName,
-  date,
-  supervisor,
-  attendees,
-  discussionItems,
-  actionsRequired,
-  photo_url: photoUrl,
-});
-      clearForm();
-      setPhotoFile(null);
-      setMessage("Saved to cloud successfully ✅");
-    }
+  try {
+    await sendEmailNotification({
+      to: "robbie@udenbuilders.co.nz",
+      site_name: siteName,
+      date,
+      supervisor,
+      attendees,
+      discussionItems,
+      actionsRequired,
+      photo_url: photoUrl,
+    });
+  } catch (e) {
+    console.log("Email not set up yet");
+  }
+
+  clearForm();
+  setPhotoFile(null);
+  setMessage("Saved to cloud successfully ✅");
+}
 } catch (error) {
   console.error(error);
   setMessage(`Error uploading photo or saving data: ${error.message}`);
