@@ -125,10 +125,10 @@ async function handleSubmit(e) {
       setPhotoFile(null);
       setMessage("Saved to cloud successfully ✅");
     }
-  } catch (error) {
-    console.error(error);
-    setMessage("Error uploading photo or saving data ❌");
-  }
+} catch (error) {
+  console.error(error);
+  setMessage(`Error uploading photo or saving data: ${error.message}`);
+}
 }
 
   const pageStyle = {
