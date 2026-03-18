@@ -1,7 +1,10 @@
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.jsx";
+import "./index.css";
 
-document.getElementById("root").innerHTML = `
-  <div style="padding:20px;font-family:Arial,sans-serif">
-    <h1>Uden Toolbox App JS is loading ✅</h1>
-    <p>If you can see this, Vercel is serving JavaScript properly.</p>
-  </div>
-`;
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
