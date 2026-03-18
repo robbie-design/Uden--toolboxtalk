@@ -74,13 +74,13 @@ async function handleSubmit(e) {
     },
   ]);
 
-  if (error) {
-    console.error(error);
-    setMessage("Error saving data ❌");
-  } else {
-    setMessage("Saved to cloud successfully ✅");
-    clearForm();
-  }
+if (error) {
+  console.error(error);
+  setMessage("Error saving data ❌");
+} else {
+  clearForm();
+  setMessage("Saved to cloud successfully ✅");
+}
 }
 
   const pageStyle = {
