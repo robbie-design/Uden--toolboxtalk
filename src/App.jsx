@@ -12,7 +12,7 @@ export default function App() {
   const [actionsRequired, setActionsRequired] = useState("");
   const [reviewed, setReviewed] = useState(false);
   const [message, setMessage] = useState("");
-
+const [photoFile, setPhotoFile] = useState(null);
   const isValid = useMemo(() => {
     return (
       siteName.trim() &&
@@ -58,29 +58,77 @@ export default function App() {
     setReviewed(false);
     setMessage("");
   }
+async function uploadPhoto(file) {
+  if (!file) return "";
 
+  const fileName = `${Date.now()}-${file.name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("toolbox-photos")
+    .upload(fileName, file);
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from("toolbox-photos")
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+}
+  async function sendEmailNotification(payload) {
+  const response = await fetch(import.meta.env.VITE_NOTIFY_WEBHOOK_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error("Email notification failed");
+  }
+}
 async function handleSubmit(e) {
   e.preventDefault();
   if (!isValid) return;
 
-  const { error } = await supabase.from("toolbox_talks").insert([
-    {
-      site_name: siteName,
-      date,
-      supervisor,
-      attendees: attendees.join(", "),
-      discussion: discussionItems.join(" | "),
-      actions: actionsRequired,
-    },
-  ]);
+  try {
+    const photoUrl = await uploadPhoto(photoFile);
 
-if (error) {
-  console.error(error);
-  setMessage("Error saving data ❌");
-} else {
-  clearForm();
-  setMessage("Saved to cloud successfully ✅");
-}
+    const { error } = await supabase.from("toolbox_talks").insert([
+      {
+        site_name: siteName,
+        date,
+        supervisor,
+        attendees: attendees.join(", "),
+        discussion: discussionItems.join(" | "),
+        actions: actionsRequired,
+        photo_url: photoUrl,
+      },
+    ]);
+
+    if (error) {
+      console.error(error);
+      setMessage("Error saving data ❌");
+    } else {
+      await sendEmailNotification({
+  to: "robbie@udenbuilders.co.nz",
+  site_name: siteName,
+  date,
+  supervisor,
+  attendees,
+  discussionItems,
+  actionsRequired,
+  photo_url: photoUrl,
+});
+      clearForm();
+      setPhotoFile(null);
+      setMessage("Saved to cloud successfully ✅");
+    }
+  } catch (error) {
+    console.error(error);
+    setMessage("Error uploading photo or saving data ❌");
+  }
 }
 
   const pageStyle = {
@@ -257,7 +305,15 @@ if (error) {
               placeholder="Any follow-up actions, hazards, or responsibilities"
             />
           </div>
-
+<div style={{ marginBottom: 14 }}>
+  <label>Site Photo</label>
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+    style={inputStyle}
+  />
+</div>
           <div style={{ marginBottom: 18 }}>
             <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <input
